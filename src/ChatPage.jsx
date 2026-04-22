@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useUser, UserButton } from "@clerk/clerk-react";
 
-const API = "http://localhost:8000";
+const API = "https://thehousekraft-chatbotapi.onrender.com";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap');
