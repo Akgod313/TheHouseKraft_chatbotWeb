@@ -116,7 +116,7 @@ const styles = `
     font-size: 9px;
     letter-spacing: 0.26em;
     text-transform: uppercase;
-    color: var(--muted, #3d3d3d);
+    color: var(--muted, #fafafa);
     flex-shrink: 0;
   }
 
@@ -157,7 +157,7 @@ const styles = `
 
   .hk-session-date {
     font-size: 9px;
-    color: var(--muted, #3d3d3d);
+    color: var(--muted, #fafafa);
     white-space: nowrap;
     flex-shrink: 0;
   }
@@ -256,7 +256,7 @@ const styles = `
     font-size: 9px;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: var(--subtle, #6b6b6b);
+    color: var(--subtle, #fafafa);
   }
 
   .hk-status-dot {
@@ -321,7 +321,7 @@ const styles = `
     font-family: 'Cormorant Garamond', serif;
     font-size: 24px;
     font-weight: 300;
-    color: var(--muted, #3d3d3d);
+    color: var(--muted, #fafafa);
     text-align: center;
   }
 
@@ -329,7 +329,7 @@ const styles = `
     font-size: 10px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--muted, #3d3d3d);
+    color: var(--muted, #fafafa);
     text-align: center;
   }
 
@@ -519,7 +519,7 @@ const styles = `
     font-size: 9px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--muted, #3d3d3d);
+    color: var(--muted, #fafafa);
     text-align: center;
   }
 
@@ -582,7 +582,7 @@ export default function ChatPage({ onBack }) {
   const { user } = useUser();
 
   // Session state
-  const [sessions, setSessions]         = useState([]);
+  const [sessions, setSessions]               = useState([]);
   const [activeSessionId, setActiveSessionId] = useState(null);
 
   // Chat state
@@ -593,9 +593,16 @@ export default function ChatPage({ onBack }) {
   const [isStreaming, setIsStreaming]   = useState(false);
   const [isLoading, setIsLoading]       = useState(true);
 
-  const messagesEndRef = useRef(null);
-  const fileInputRef   = useRef(null);
-  const textareaRef    = useRef(null);
+  const messagesEndRef  = useRef(null);
+  const fileInputRef    = useRef(null);
+  const textareaRef     = useRef(null);
+
+  // ── Refs that survive navigation / re-renders ──────────────────────────────
+  // These store in-flight streaming state so if the user navigates away
+  // and returns, the accumulated text is not lost.
+  const accumulatedRef   = useRef("");   // full text built up during streaming
+  const abortControllerRef = useRef(null); // so we can cancel on unmount if needed
+  const activeSessionRef = useRef(null); // mirrors activeSessionId for use inside async callbacks
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -636,6 +643,7 @@ export default function ChatPage({ onBack }) {
   const loadSession = async (sessionId) => {
     setIsLoading(true);
     setActiveSessionId(sessionId);
+    activeSessionRef.current = sessionId;  // keep ref in sync for async callbacks
     localStorage.setItem(`hk_session_${user.id}`, sessionId);
     try {
       const res = await fetch(`${API}/history/${sessionId}`, {
@@ -668,6 +676,7 @@ export default function ChatPage({ onBack }) {
       }, ...prev]);
 
       setActiveSessionId(newId);
+      activeSessionRef.current = newId;  // keep ref in sync
       setMessages([]);
       localStorage.setItem(`hk_session_${user.id}`, newId);
     } catch (err) {
@@ -699,6 +708,17 @@ export default function ChatPage({ onBack }) {
 
   useEffect(() => { scrollToBottom(); }, [messages]);
 
+  // ── On unmount: if still streaming, the fetch will abort but the backend
+  // continues saving to DB. When the user returns and reloads the session,
+  // they'll see the complete response from the DB.
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
   const handleInputChange = (e) => {
     setInput(e.target.value);
     const ta = textareaRef.current;
@@ -724,7 +744,9 @@ export default function ChatPage({ onBack }) {
   };
 
   const sendMessage = useCallback(async () => {
-    if (!input.trim() || isStreaming || !user || !activeSessionId) return;
+    if (!input.trim() || isStreaming || !user || !activeSessionRef.current) return;
+
+    const sessionId = activeSessionRef.current; // read from ref — safe inside async
 
     const userMsg = {
       role: "user",
@@ -741,68 +763,81 @@ export default function ChatPage({ onBack }) {
 
     setMessages(prev => [...prev, { role: "assistant", content: "" }]);
     setIsStreaming(true);
+    accumulatedRef.current = ""; // reset accumulated text for this new stream
+
+    // Create a fresh AbortController so we can cancel on unmount
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
       const formData = new FormData();
       formData.append("message", userMsg.content);
       formData.append("history", JSON.stringify(historyForApi));
-      formData.append("session_id", activeSessionId);
+      formData.append("session_id", sessionId);
       if (imageFile) formData.append("image", imageFile);
 
       const response = await fetch(`${API}/chat`, {
         method: "POST",
         headers: { "x-user-id": user.id },
         body: formData,
+        signal: controller.signal, // attach abort signal
       });
 
       if (!response.ok) throw new Error("Request failed");
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let accumulated = "";
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        accumulated += decoder.decode(value, { stream: true });
+        accumulatedRef.current += decoder.decode(value, { stream: true });
+
+        // Always update the last message with ref value — survives re-renders
         setMessages(prev => {
           const updated = [...prev];
-          updated[updated.length - 1] = { role: "assistant", content: accumulated };
+          updated[updated.length - 1] = {
+            role: "assistant",
+            content: accumulatedRef.current
+          };
           return updated;
         });
         scrollToBottom();
       }
 
-      // Update session title in sidebar if it was "New Chat"
-      setSessions(prev => prev.map(s => {
-        if (s.session_id === activeSessionId) {
-          return { ...s, updated_at: new Date().toISOString() };
-        }
-        return s;
-      }));
-
-      // Refresh sessions to get updated title
+      // Refresh sessions sidebar after stream to show updated title
+      setSessions(prev => prev.map(s =>
+        s.session_id === sessionId
+          ? { ...s, updated_at: new Date().toISOString() }
+          : s
+      ));
       setTimeout(async () => {
-        const res = await fetch(`${API}/sessions`, {
-          headers: { "x-user-id": user.id }
-        });
-        const data = await res.json();
-        setSessions(data.sessions || []);
+        try {
+          const res = await fetch(`${API}/sessions`, {
+            headers: { "x-user-id": user.id }
+          });
+          const data = await res.json();
+          setSessions(data.sessions || []);
+        } catch (_) {}
       }, 2000);
 
     } catch (err) {
+      if (err.name === "AbortError") {
+        // User navigated away — stream was cancelled intentionally, don't show error
+        return;
+      }
       setMessages(prev => {
         const updated = [...prev];
         updated[updated.length - 1] = {
           role: "assistant",
-          content: "Something went wrong. Please try again."
+          content: accumulatedRef.current || "Something went wrong. Please try again."
         };
         return updated;
       });
     } finally {
       setIsStreaming(false);
     }
-  }, [input, imageFile, imagePreview, messages, isStreaming, user, activeSessionId]);
+  }, [input, imageFile, imagePreview, messages, isStreaming, user]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -891,7 +926,6 @@ export default function ChatPage({ onBack }) {
               </div>
             ) : messages.length === 0 ? (
               <div className="hk-empty-state">
-                <div className="hk-empty-icon">🏠</div>
                 <div className="hk-empty-title">How can I help you today?</div>
                 <div className="hk-empty-sub">Ask about design, repairs, or home improvement</div>
               </div>
