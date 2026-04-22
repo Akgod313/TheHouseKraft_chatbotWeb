@@ -8,7 +8,7 @@ const styles = `
 
   .hk-chat-root {
     display: grid;
-    grid-template-columns: 260px 1fr;
+    grid-template-columns: 280px 1fr;
     grid-template-rows: 100vh;
     height: 100vh;
     background: var(--black, #0a0a0a);
@@ -27,11 +27,13 @@ const styles = `
     padding: 0;
     position: relative;
     z-index: 10;
+    overflow: hidden;
   }
 
   .hk-sidebar-header {
-    padding: 28px 24px 24px;
+    padding: 28px 24px 20px;
     border-bottom: 1px solid var(--dim, #2a2a2a);
+    flex-shrink: 0;
   }
 
   .hk-sidebar-logo {
@@ -48,15 +50,16 @@ const styles = `
     font-size: 9px;
     letter-spacing: 0.28em;
     text-transform: uppercase;
-    color: var(--subtle, #fafafa);
+    color: var(--subtle, #6b6b6b);
   }
 
   .hk-sidebar-user {
-    padding: 20px 24px;
+    padding: 16px 24px;
     border-bottom: 1px solid var(--dim, #2a2a2a);
     display: flex;
     align-items: center;
     gap: 12px;
+    flex-shrink: 0;
   }
 
   .hk-sidebar-user-info {
@@ -68,7 +71,7 @@ const styles = `
     font-size: 9px;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: var(--subtle, #fafafa);
+    color: var(--subtle, #6b6b6b);
     margin-bottom: 3px;
   }
 
@@ -81,30 +84,10 @@ const styles = `
     text-overflow: ellipsis;
   }
 
-  .hk-sidebar-body {
-    flex: 1;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .hk-sidebar-section-label {
-    font-size: 9px;
-    letter-spacing: 0.26em;
-    text-transform: uppercase;
-    color: var(--muted, #fafafa);
-    margin-bottom: 4px;
-  }
-
-  .hk-sidebar-footer {
-    padding: 20px 24px;
-    border-top: 1px solid var(--dim, #2a2a2a);
-  }
-
-  .hk-clear-btn {
-    width: 100%;
-    padding: 11px 16px;
+  /* ── NEW CHAT BUTTON ── */
+  .hk-new-chat-btn {
+    margin: 16px 24px;
+    padding: 10px 16px;
     background: transparent;
     border: 1px solid var(--dim, #2a2a2a);
     color: var(--ash, #9a9a9a);
@@ -119,11 +102,87 @@ const styles = `
     align-items: center;
     justify-content: center;
     gap: 8px;
+    flex-shrink: 0;
   }
 
-  .hk-clear-btn:hover {
-    border-color: var(--muted, #3d3d3d);
+  .hk-new-chat-btn:hover {
+    border-color: var(--silver, #c8c8c8);
     color: var(--silver, #c8c8c8);
+  }
+
+  /* ── SESSIONS LIST ── */
+  .hk-sessions-label {
+    padding: 0 24px 8px;
+    font-size: 9px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--muted, #3d3d3d);
+    flex-shrink: 0;
+  }
+
+  .hk-sessions-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 12px;
+  }
+
+  .hk-sessions-list::-webkit-scrollbar { width: 2px; }
+  .hk-sessions-list::-webkit-scrollbar-thumb { background: var(--dim, #2a2a2a); }
+
+  .hk-session-item {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 2px;
+  }
+
+  .hk-session-item:hover { background: var(--graphite, #1e1e1e); }
+  .hk-session-item.active { background: var(--graphite, #1e1e1e); border-left: 2px solid var(--silver, #c8c8c8); }
+
+  .hk-session-title {
+    font-size: 12px;
+    color: var(--silver, #c8c8c8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+  }
+
+  .hk-session-item.active .hk-session-title { color: var(--white, #fafafa); }
+
+  .hk-session-date {
+    font-size: 9px;
+    color: var(--muted, #3d3d3d);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .hk-session-delete {
+    background: none;
+    border: none;
+    color: var(--muted, #3d3d3d);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0 2px;
+    line-height: 1;
+    opacity: 0;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .hk-session-item:hover .hk-session-delete { opacity: 1; }
+  .hk-session-delete:hover { color: var(--ash, #9a9a9a); }
+
+  /* ── SIDEBAR FOOTER ── */
+  .hk-sidebar-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--dim, #2a2a2a);
+    flex-shrink: 0;
   }
 
   .hk-back-btn {
@@ -143,7 +202,6 @@ const styles = `
     align-items: center;
     justify-content: center;
     gap: 8px;
-    margin-bottom: 8px;
   }
 
   .hk-back-btn:hover {
@@ -160,7 +218,6 @@ const styles = `
     overflow: hidden;
   }
 
-  /* Architectural grid bg */
   .hk-chat-main::before {
     content: '';
     position: absolute;
@@ -206,7 +263,7 @@ const styles = `
     width: 5px;
     height: 5px;
     border-radius: 50%;
-    background:  #4ade80;
+    background: #4ade80;
     animation: pulse 3s ease-in-out infinite;
   }
 
@@ -264,7 +321,7 @@ const styles = `
     font-family: 'Cormorant Garamond', serif;
     font-size: 24px;
     font-weight: 300;
-    color: var(--muted, #fafafa);
+    color: var(--muted, #3d3d3d);
     text-align: center;
   }
 
@@ -272,7 +329,7 @@ const styles = `
     font-size: 10px;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--muted, #fafafa);
+    color: var(--muted, #3d3d3d);
     text-align: center;
   }
 
@@ -321,7 +378,6 @@ const styles = `
     border-radius: 2px 2px 2px 0;
   }
 
-  /* Corner accent on assistant bubble */
   .hk-msg.assistant .hk-msg-bubble::before {
     content: '';
     position: absolute;
@@ -338,7 +394,6 @@ const styles = `
     border: 1px solid var(--dim, #2a2a2a);
   }
 
-  /* Streaming cursor */
   .hk-cursor {
     display: inline-block;
     width: 2px;
@@ -364,7 +419,6 @@ const styles = `
     background: var(--black, #0a0a0a);
   }
 
-  /* Image preview */
   .hk-image-preview {
     margin-bottom: 12px;
     display: flex;
@@ -402,9 +456,7 @@ const styles = `
     transition: border-color 0.3s;
   }
 
-  .hk-input-row:focus-within {
-    border-color: var(--muted, #3d3d3d);
-  }
+  .hk-input-row:focus-within { border-color: var(--muted, #3d3d3d); }
 
   .hk-textarea {
     flex: 1;
@@ -424,10 +476,7 @@ const styles = `
     overflow-y: auto;
   }
 
-  .hk-textarea::placeholder {
-    color: var(--muted, #3d3d3d);
-  }
-
+  .hk-textarea::placeholder { color: var(--muted, #3d3d3d); }
   .hk-textarea::-webkit-scrollbar { width: 2px; }
   .hk-textarea::-webkit-scrollbar-thumb { background: var(--dim, #2a2a2a); }
 
@@ -440,13 +489,9 @@ const styles = `
   }
 
   .hk-icon-btn {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: none;
-    border: none;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: none;
     color: var(--subtle, #6b6b6b);
     cursor: pointer;
     transition: color 0.2s;
@@ -456,11 +501,8 @@ const styles = `
   .hk-icon-btn:hover { color: var(--silver, #c8c8c8); }
 
   .hk-send-btn {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
     background: var(--white, #fafafa);
     border: none;
     color: var(--black, #0a0a0a);
@@ -477,22 +519,30 @@ const styles = `
     font-size: 9px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--muted, #adadad);
+    color: var(--muted, #3d3d3d);
     text-align: center;
+  }
+
+  /* ── LOADING SESSIONS ── */
+  .hk-sessions-empty {
+    padding: 16px 12px;
+    font-size: 11px;
+    color: var(--muted, #3d3d3d);
+    text-align: center;
+    letter-spacing: 0.05em;
   }
 
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
     .hk-chat-root { grid-template-columns: 1fr; }
     .hk-sidebar { display: none; }
-    .hk-messages { padding: 20px 20px; }
+    .hk-messages { padding: 20px; }
     .hk-input-area { padding: 16px 20px 20px; }
     .hk-chat-topbar { padding: 16px 20px; }
     .hk-msg { max-width: 90%; }
   }
 `;
 
-// Simple markdown-like renderer for bold/code
 function renderText(text) {
   return text
     .replace(/\*\*(.*?)\*\*/g, '<strong style="color:#e8e4df;font-weight:500">$1</strong>')
@@ -517,14 +567,32 @@ function Message({ msg, isStreaming }) {
   );
 }
 
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diff = now - d;
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 7) return `${days}d ago`;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
 export default function ChatPage({ onBack }) {
   const { user } = useUser();
-  const [messages, setMessages]     = useState([]);
-  const [input, setInput]           = useState("");
-  const [imageFile, setImageFile]   = useState(null);
+
+  // Session state
+  const [sessions, setSessions]         = useState([]);
+  const [activeSessionId, setActiveSessionId] = useState(null);
+
+  // Chat state
+  const [messages, setMessages]         = useState([]);
+  const [input, setInput]               = useState("");
+  const [imageFile, setImageFile]       = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [isStreaming, setIsStreaming]   = useState(false);
   const [isLoading, setIsLoading]       = useState(true);
+
   const messagesEndRef = useRef(null);
   const fileInputRef   = useRef(null);
   const textareaRef    = useRef(null);
@@ -533,23 +601,104 @@ export default function ChatPage({ onBack }) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Load history on mount
+  // ── Load sessions on mount ──
   useEffect(() => {
     if (!user) return;
-    fetch(`${API}/history`, {
-      headers: { "x-user-id": user.id }
-    })
-      .then(r => r.json())
-      .then(data => {
-        setMessages(data.messages || []);
-        setIsLoading(false);
-      })
-      .catch(() => setIsLoading(false));
+    loadSessions();
   }, [user]);
+
+  const loadSessions = async () => {
+    try {
+      const res = await fetch(`${API}/sessions`, {
+        headers: { "x-user-id": user.id }
+      });
+      const data = await res.json();
+      const sessionList = data.sessions || [];
+      setSessions(sessionList);
+
+      // Resume last active session from localStorage, or use most recent
+      const saved = localStorage.getItem(`hk_session_${user.id}`);
+      const exists = sessionList.find(s => s.session_id === saved);
+
+      if (saved && exists) {
+        await loadSession(saved);
+      } else if (sessionList.length > 0) {
+        await loadSession(sessionList[0].session_id);
+      } else {
+        // No sessions at all — create one
+        await createNewSession();
+      }
+    } catch (err) {
+      setIsLoading(false);
+    }
+  };
+
+  const loadSession = async (sessionId) => {
+    setIsLoading(true);
+    setActiveSessionId(sessionId);
+    localStorage.setItem(`hk_session_${user.id}`, sessionId);
+    try {
+      const res = await fetch(`${API}/history/${sessionId}`, {
+        headers: { "x-user-id": user.id }
+      });
+      const data = await res.json();
+      setMessages(data.messages || []);
+    } catch (err) {
+      setMessages([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const createNewSession = async () => {
+    try {
+      const res = await fetch(`${API}/sessions`, {
+        method: "POST",
+        headers: { "x-user-id": user.id }
+      });
+      const data = await res.json();
+      const newId = data.session_id;
+
+      // Add to sessions list
+      setSessions(prev => [{
+        session_id: newId,
+        title: "New Chat",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }, ...prev]);
+
+      setActiveSessionId(newId);
+      setMessages([]);
+      localStorage.setItem(`hk_session_${user.id}`, newId);
+    } catch (err) {
+      console.error("Failed to create session", err);
+    }
+  };
+
+  const deleteSession = async (e, sessionId) => {
+    e.stopPropagation();
+    try {
+      await fetch(`${API}/sessions/${sessionId}`, {
+        method: "DELETE",
+        headers: { "x-user-id": user.id }
+      });
+      const updated = sessions.filter(s => s.session_id !== sessionId);
+      setSessions(updated);
+
+      if (activeSessionId === sessionId) {
+        if (updated.length > 0) {
+          await loadSession(updated[0].session_id);
+        } else {
+          await createNewSession();
+        }
+      }
+    } catch (err) {
+      console.error("Failed to delete session", err);
+    }
+  };
 
   useEffect(() => { scrollToBottom(); }, [messages]);
 
-  // Auto-resize textarea
   const handleInputChange = (e) => {
     setInput(e.target.value);
     const ta = textareaRef.current;
@@ -575,7 +724,7 @@ export default function ChatPage({ onBack }) {
   };
 
   const sendMessage = useCallback(async () => {
-    if (!input.trim() || isStreaming || !user) return;
+    if (!input.trim() || isStreaming || !user || !activeSessionId) return;
 
     const userMsg = {
       role: "user",
@@ -590,7 +739,6 @@ export default function ChatPage({ onBack }) {
     removeImage();
     if (textareaRef.current) textareaRef.current.style.height = "auto";
 
-    // Placeholder assistant message
     setMessages(prev => [...prev, { role: "assistant", content: "" }]);
     setIsStreaming(true);
 
@@ -598,6 +746,7 @@ export default function ChatPage({ onBack }) {
       const formData = new FormData();
       formData.append("message", userMsg.content);
       formData.append("history", JSON.stringify(historyForApi));
+      formData.append("session_id", activeSessionId);
       if (imageFile) formData.append("image", imageFile);
 
       const response = await fetch(`${API}/chat`, {
@@ -616,7 +765,6 @@ export default function ChatPage({ onBack }) {
         const { done, value } = await reader.read();
         if (done) break;
         accumulated += decoder.decode(value, { stream: true });
-        // Update the last message (the streaming assistant bubble) in real time
         setMessages(prev => {
           const updated = [...prev];
           updated[updated.length - 1] = { role: "assistant", content: accumulated };
@@ -624,6 +772,24 @@ export default function ChatPage({ onBack }) {
         });
         scrollToBottom();
       }
+
+      // Update session title in sidebar if it was "New Chat"
+      setSessions(prev => prev.map(s => {
+        if (s.session_id === activeSessionId) {
+          return { ...s, updated_at: new Date().toISOString() };
+        }
+        return s;
+      }));
+
+      // Refresh sessions to get updated title
+      setTimeout(async () => {
+        const res = await fetch(`${API}/sessions`, {
+          headers: { "x-user-id": user.id }
+        });
+        const data = await res.json();
+        setSessions(data.sessions || []);
+      }, 2000);
+
     } catch (err) {
       setMessages(prev => {
         const updated = [...prev];
@@ -636,7 +802,7 @@ export default function ChatPage({ onBack }) {
     } finally {
       setIsStreaming(false);
     }
-  }, [input, imageFile, imagePreview, messages, isStreaming, user]);
+  }, [input, imageFile, imagePreview, messages, isStreaming, user, activeSessionId]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -645,14 +811,7 @@ export default function ChatPage({ onBack }) {
     }
   };
 
-  const clearHistory = async () => {
-    if (!user) return;
-    await fetch(`${API}/history`, {
-      method: "DELETE",
-      headers: { "x-user-id": user.id }
-    });
-    setMessages([]);
-  };
+  const activeSession = sessions.find(s => s.session_id === activeSessionId);
 
   return (
     <>
@@ -674,11 +833,32 @@ export default function ChatPage({ onBack }) {
             </div>
           </div>
 
-          <div className="hk-sidebar-body">
-            <div className="hk-sidebar-section-label">Session</div>
-            <div style={{ fontSize: "11px", color: "var(--subtle, #6b6b6b)", lineHeight: 1.6 }}>
-              {messages.length} message{messages.length !== 1 ? "s" : ""} in this conversation
-            </div>
+          <button className="hk-new-chat-btn" onClick={createNewSession}>
+            + New Chat
+          </button>
+
+          <div className="hk-sessions-label">Conversations</div>
+
+          <div className="hk-sessions-list">
+            {sessions.length === 0 ? (
+              <div className="hk-sessions-empty">No conversations yet</div>
+            ) : (
+              sessions.map(s => (
+                <div
+                  key={s.session_id}
+                  className={`hk-session-item ${s.session_id === activeSessionId ? "active" : ""}`}
+                  onClick={() => loadSession(s.session_id)}
+                >
+                  <span className="hk-session-title">{s.title || "New Chat"}</span>
+                  <span className="hk-session-date">{formatDate(s.updated_at)}</span>
+                  <button
+                    className="hk-session-delete"
+                    onClick={(e) => deleteSession(e, s.session_id)}
+                    title="Delete"
+                  >×</button>
+                </div>
+              ))
+            )}
           </div>
 
           <div className="hk-sidebar-footer">
@@ -687,16 +867,15 @@ export default function ChatPage({ onBack }) {
                 ← Back to Portal
               </button>
             )}
-            <button className="hk-clear-btn" onClick={clearHistory}>
-              Clear History
-            </button>
           </div>
         </aside>
 
         {/* ── MAIN ── */}
         <main className="hk-chat-main">
           <div className="hk-chat-topbar">
-            <span className="hk-chat-title">Design Expert</span>
+            <span className="hk-chat-title">
+              {activeSession?.title || "Design Expert"}
+            </span>
             <div className="hk-status-badge">
               <span className={`hk-status-dot ${isStreaming ? "thinking" : ""}`} />
               {isStreaming ? "Thinking..." : "Online"}
@@ -707,11 +886,12 @@ export default function ChatPage({ onBack }) {
             {isLoading ? (
               <div className="hk-empty-state">
                 <div className="hk-empty-title" style={{ fontSize: "14px", color: "var(--muted)" }}>
-                  Loading your conversation...
+                  Loading conversation...
                 </div>
               </div>
             ) : messages.length === 0 ? (
               <div className="hk-empty-state">
+                <div className="hk-empty-icon">🏠</div>
                 <div className="hk-empty-title">How can I help you today?</div>
                 <div className="hk-empty-sub">Ask about design, repairs, or home improvement</div>
               </div>
@@ -789,4 +969,4 @@ export default function ChatPage({ onBack }) {
       </div>
     </>
   );
-}   
+}
