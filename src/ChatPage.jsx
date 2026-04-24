@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useUser, UserButton } from "@clerk/clerk-react";
+import {neon} from '@neondatabase/serverless'
 
 const API = "https://thehousekraft-chatbotapi.onrender.com";
 
@@ -890,7 +891,7 @@ export default function ChatPage({ onBack }) {
                     className="hk-session-delete"
                     onClick={(e) => deleteSession(e, s.session_id)}
                     title="Delete"
-                  >×</button>
+                  ></button>
                 </div>
               ))
             )}
